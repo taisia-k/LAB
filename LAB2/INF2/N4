@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+    exit 1
+fi
+if pgrep -x "$1" > /dev/null; then
+    echo "Процесс запущен"
+else
+    echo "Процесс не найден"
+fi
