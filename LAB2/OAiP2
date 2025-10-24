@@ -1,0 +1,95 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <cstring>
+#include <cctype>
+#include <climits>
+#include <cmath>
+
+using namespace std;
+
+//делим на слова
+int split(char* str, char words[][50]) {
+    int c = 0;
+    char* token = strtok(str, " ");
+
+    while (token != nullptr) {
+        strcpy(words[c], token);
+        c++;
+        token = strtok(nullptr, " ");
+    }
+
+    return c;
+}
+
+
+int main() {
+    setlocale(LC_ALL, "rus");
+
+    char input[500];
+    char words[10][50];
+    char strt[500];
+    cin.getline(input, 500);
+    strcpy(strt, input);
+    int c_w = split(strt, words);
+
+
+    //1
+    int c_a = 0;
+    for (int i = 0; i < c_w; i++) {
+        char* word_ukaz = words[i];
+        int len = strlen(word_ukaz);
+        if (len > 0 && tolower(*(word_ukaz + len - 1)) == 'a') {
+            c_a++;
+        }
+    }
+    cout << "Количество слов, оканчивающихся на a: " << c_a << endl;
+
+    //2
+    int mn_len = 9999999;
+    for (int i = 0; i < c_w; i++) {
+        int len = strlen(words[i]);
+        if (len < mn_len) {
+            mn_len = len;
+        }
+    }
+    cout << "Длина самого короткого слова: " << mn_len << endl;
+
+    //3
+    int c_b = 0;
+    char* word2 = words[1];
+    char* ukaz1 = word2;
+    char* ukaz2 = word2;
+    while ((ukaz1 = strchr(ukaz1, 'b')) != nullptr) {
+        c_b++;
+        ukaz1++;
+    }
+    while ((ukaz2 = strchr(ukaz2, 'B')) != nullptr) {
+        c_b++;
+        ukaz2++;
+    }
+
+    cout << "Количество букв b во втором слове строки: " << c_b << endl;
+
+    //4
+    strcpy(strt, input);
+    char* char_ukaz = strt;
+    while (*char_ukaz != '\0') {
+        *char_ukaz = tolower(*char_ukaz);
+        char_ukaz++;
+    }
+    cout << "Строка строчными буквами: " << strt << endl;
+
+    //5
+    int c_sovpad = 0;
+    for (int i = 0; i < c_w; i++) {
+        char* word_ukaz = words[i];
+        int len = strlen(word_ukaz);
+        if (len > 0 && tolower(*word_ukaz) == tolower(*(word_ukaz + len - 1))) {
+            c_sovpad++;
+        }
+    }
+    cout << "Количество слов, у которых первый и последний символы совпадают между собой: " << c_sovpad << endl;
+
+
+    return 0;
+}
