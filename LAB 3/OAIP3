@@ -1,0 +1,286 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
+
+using namespace std;
+
+// структура для хранения данных о блюде
+struct Dish {
+    string name;
+    string type;
+    double price;
+};
+
+// меню
+void menu() {
+    cout << "1. Добавить блюдо\n";
+    cout << "2. Поиск блюда по названию\n";
+    cout << "3. Сортировка блюд\n";
+    cout << "4. Вывод блюд по цене\n";
+    cout << "5. Показать все блюда\n";
+    cout << "Выберите опцию: ";
+}
+
+// типы блюд
+void dishtypes() {
+    cout << "Типы блюд:\n";
+    cout << "1. Закуски\n";
+    cout << "2. Основные блюда\n";
+    cout << "3. Десерты\n";
+    cout << "4. Напитки\n";
+    cout << "5. Для детей\n";
+    cout << "Выберите тип: ";
+}
+
+// получение типа блюда по номеру
+string getdishtype(int typeNumber) {
+    switch (typeNumber) {
+    case 1: return "Закуски";
+    case 2: return "Основные блюда";
+    case 3: return "Десерты";
+    case 4: return "Напитки";
+    case 5: return "Для детей";
+    default: return "";
+    }
+}
+
+// чтение всех блюд из файла
+vector<Dish> readDishesFromFile(const string& filename) {
+    vector<Dish> dishes;
+    ifstream inFile(filename);
+
+    if (inFile.is_open()) {
+        string line;
+        while (getline(inFile, line)) {
+            if (!line.empty()) {
+                stringstream ss(line);
+                Dish dish;
+                getline(ss, dish.name, ',');
+                getline(ss, dish.type, ',');
+                ss >> dish.price;
+                dishes.push_back(dish);
+            }
+        }
+        inFile.close();
+    }
+
+    return dishes;
+}
+
+// запись блюд в файл
+void writeDishesToFile(const string& filename, const vector<Dish>& dishes) {
+    ofstream outFile(filename);
+
+    if (outFile.is_open()) {
+        for (const auto& dish : dishes) {
+            outFile << dish.name << "," << dish.type << "," << dish.price << endl;
+        }
+        outFile.close();
+    }
+}
+
+// добавление блюда в файл
+void addtofile(const string& filename) {
+    ofstream outFile(filename, ios::app);
+
+    if (outFile.is_open()) {
+        Dish dish;
+        cout << "Введите название блюда: ";
+        getline(cin, dish.name);
+
+        if (dish.name.empty()) {
+            return;
+        }
+
+        dishtypes();
+        int typeChoice;
+        cin >> typeChoice;
+        cin.ignore();
+
+        dish.type = getdishtype(typeChoice);
+
+        cout << "Введите цену блюда: ";
+        cin >> dish.price;
+        cin.ignore();
+
+        outFile << dish.name << "," << dish.type << "," << dish.price << endl;
+        outFile.close();
+
+        cout << "Блюдо успешно добавлено!\n";
+
+        ofstream outputFile("output.txt", ios::app);
+        if (outputFile.is_open()) {
+            outputFile << "Добавлено блюдо: " << dish.name << ", " << dish.type << ", " << dish.price << endl;
+            outputFile.close();
+        }
+    }
+}
+
+// поиск блюда по названию
+void searchDishByName(const string& filename) {
+    vector<Dish> dishes = readDishesFromFile(filename);
+
+    string searchName;
+    cout << "Введите название блюда для поиска: ";
+    getline(cin, searchName);
+
+    bool found = false;
+    ofstream outputFile("output.txt", ios::app);
+
+    for (const auto& dish : dishes) {
+        if (dish.name.find(searchName) != string::npos) {
+            cout << "Найдено: " << dish.name << " | " << dish.type << " | " << dish.price << endl;
+            if (outputFile.is_open()) {
+                outputFile << "Найдено: " << dish.name << " | " << dish.type << " | " << dish.price << endl;
+            }
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "Блюдо не найдено \n";
+    }
+
+    if (outputFile.is_open()) {
+        outputFile.close();
+    }
+}
+
+// сортировка
+bool compareByType(const Dish& a, const Dish& b)
+{
+    return a.type < b.type;
+}
+
+bool compareByPrice(const Dish& a, const Dish& b) {
+    return a.price < b.price;
+}
+
+// сортировка блюд
+void sortDishes(const string& filename) {
+    vector<Dish> dishes = readDishesFromFile(filename);
+
+    cout << "1. Сортировка по типу\n";
+    cout << "2. Сортировка по цене\n";
+    cout << "Выберите опцию: ";
+
+    int choice;
+    cin >> choice;
+    cin.ignore();
+
+    ofstream outputFile("output.txt", ios::app);
+
+    switch (choice) {
+    case 1:
+        sort(dishes.begin(), dishes.end(), compareByType);
+        cout << "Блюда отсортированы по типу:\n";
+        if (outputFile.is_open()) {
+            outputFile << "Блюда отсортированы по типу:\n";
+        }
+        break;
+    case 2:
+        sort(dishes.begin(), dishes.end(), compareByPrice);
+        cout << "Блюда отсортированы по цене:\n";
+        break;
+    }
+
+    // вывод отсортированных блюд
+    for (const auto& dish : dishes) {
+        cout << dish.name << " | " << dish.type << " | " << dish.price << endl;
+        if (outputFile.is_open()) {
+            outputFile << dish.name << " | " << dish.type << " | " << dish.price << endl;
+        }
+    }
+
+    writeDishesToFile(filename, dishes);
+
+    if (outputFile.is_open()) {
+        outputFile.close();
+    }
+}
+
+// вывод блюд по цене
+void displayDishesByPrice(const string& filename) {
+    vector<Dish> dishes = readDishesFromFile(filename);
+
+    double maxPrice;
+    cout << "Введите максимальную цену: ";
+    cin >> maxPrice;
+    cin.ignore();
+
+    bool found = false;
+    ofstream outputFile("output.txt", ios::app);
+
+    cout << "Блюда с ценой до " << maxPrice << endl;
+    for (const auto& dish : dishes) {
+        if (dish.price <= maxPrice) {
+            cout << dish.name << " | " << dish.type << " | " << dish.price << endl;
+            if (outputFile.is_open()) {
+                outputFile << dish.name << " | " << dish.type << " | " << dish.price << endl;
+            }
+            found = true;
+        }
+    }
+
+    if (outputFile.is_open()) {
+        outputFile.close();
+    }
+}
+
+// функция для отображения всех блюд
+void displayAllDishes(const string& filename) {
+    vector<Dish> dishes = readDishesFromFile(filename);
+
+    ofstream outputFile("output.txt", ios::app);
+
+    if (outputFile.is_open()) {
+        outputFile << "Все блюда: \n";
+    }
+
+    for (const auto& dish : dishes) {
+        cout << dish.name << " | " << dish.type << " | " << dish.price << endl;
+        if (outputFile.is_open()) {
+            outputFile << dish.name << " | " << dish.type << " | " << dish.price << endl;
+        }
+    }
+
+    if (outputFile.is_open()) {
+        outputFile.close();
+    }
+}
+
+int main() {
+    const string filename = "menu.txt";
+    int choice;
+    setlocale(LC_ALL, "Russian");
+
+    do {
+        menu();
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice) {
+        case 1:
+            addtofile(filename);
+            break;
+        case 2:
+            searchDishByName(filename);
+            break;
+        case 3:
+            sortDishes(filename);
+            break;
+        case 4:
+            displayDishesByPrice(filename);
+            break;
+        case 5:
+            displayAllDishes(filename);
+            break;
+        }
+    } while (choice != 0);
+
+    return 0;
+}
