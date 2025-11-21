@@ -1,0 +1,98 @@
+-- таблица категорий
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL
+);
+
+-- таблица блюд
+CREATE TABLE dishes (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    category_id INTEGER,
+    price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+-- таблица заказов
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    dish_id INTEGER,
+    order_date DATE NOT NULL,
+    quantity INTEGER NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (dish_id) REFERENCES dishes(id)
+);
+
+
+
+
+
+
+-- категории блюд
+INSERT INTO categories (category_name) VALUES 
+('Супы'),
+('Основные блюда'),
+('Закуски'),
+('Десерты');
+
+
+-- блюда
+INSERT INTO dishes (name, category_id, price) VALUES 
+('Борщ', 1, 250.00),
+('Куриный суп', 1, 200.00),
+('Стейк', 2, 800.00),
+('Карбонара', 2, 450.00),
+('Салат Цезарь', 3, 350.00),
+('Брускетта', 3, 280.00),
+('Тирамису', 4, 300.00),
+('Чизкейк', 4, 320.00);
+
+
+-- заказы
+INSERT INTO orders (dish_id, order_date, quantity, total_price) VALUES 
+(1, '2025-11-10', 2, 500.00),
+(3, '2025-11-10', 1, 800.00),
+(7, '2025-11-10', 1, 300.00),
+(2, '2025-11-11', 3, 600.00),
+(4, '2025-11-11', 2, 900.00),
+(5, '2025-11-12', 1, 350.00),
+(8, '2025-11-12', 2, 640.00),
+(3, '2025-11-13', 1, 800.00);
+
+
+
+
+-- блюда определенной категории 
+SELECT d.name, d.price, c.category_name 
+FROM dishes d 
+JOIN categories c ON d.category_id = c.id 
+WHERE c.category_name = 'Основные блюда';
+
+
+-- заказы за определенный период
+SELECT o.order_id, d.name, o.order_date, o.quantity, o.total_price 
+FROM orders o 
+JOIN dishes d ON o.dish_id = d.id 
+WHERE o.order_date BETWEEN '2025-11-01' AND '2025-11-21';
+
+
+
+-- общая стоимость всех заказов за конкретный день
+SELECT 
+    order_date AS "Дата",
+    SUM(total_price) AS "Общая стоимость за день"
+FROM orders 
+WHERE order_date = '2025-11-11'
+GROUP BY order_date;
+
+
+-- популярные блюда
+SELECT 
+    d.name AS "Название блюда",
+    COUNT(o.order_id) AS "Количество заказов",
+    SUM(o.quantity) AS "Всего порций продано",
+    SUM(o.total_price) AS "Общая выручка"
+FROM orders o 
+JOIN dishes d ON o.dish_id = d.id 
+GROUP BY d.name 
+ORDER BY COUNT(o.order_id) DESC;
